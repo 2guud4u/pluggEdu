@@ -1,7 +1,11 @@
 package com.jia.pluggedu.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,7 +49,8 @@ fun InteractionScreen(
         verticalArrangement = Arrangement.Center
     ) {
         // Align InteractTopBar to the top-center
-        InteractTopBar(classCode = viewModel.connectedIp.value, viewModel.serverSize.intValue)
+        InteractTopBar(classCode = viewModel.connectedIp.value,
+            count = viewModel.serverSize.intValue, teacher=(viewModel.connectionMode.value == "server"))
         // Center content in the Box
 
         when (viewModel.connectionMode.value) {
@@ -75,12 +80,25 @@ fun TeacherContent(viewModel: PluggedViewModel) {
 
     Column(
     ) {
+        androidx.compose.animation.AnimatedVisibility(
+            visible = viewModel.isFeedbackVisible.value,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            val lastMsg = viewModel.feedbackList.lastOrNull()
+            if (lastMsg != null){
+                NotifCard(
+                    title = "Feedback",
+                    subtitle = "Anon",
+                    description = lastMsg.text,
+                    imageUrl = "",
+                    onDeleteClick = {viewModel.isFeedbackVisible.value = false},
+                    isElevated = false,
+                )
+            }
 
-        Button(onClick = {
-
-        }) {
-            Text("Comprehension Check")
         }
+
 
         HorizontalDivider(
             thickness = 2.dp, // Thicker line
@@ -92,16 +110,15 @@ fun TeacherContent(viewModel: PluggedViewModel) {
 
 
         Card(
-
         ) {
             LazyColumn(
-//            state = listState,
             ) {
                 itemsIndexed(viewModel.questionsList) { index, message ->
                     MessageItem(message, { viewModel.removeQuestion(index) })
                 }
             }
         }
+
     }
 
 
@@ -113,13 +130,13 @@ fun StudentContent(viewModel: PluggedViewModel) {
     Column() {
         Row() {
             Button(
-                onClick = {},
+                onClick = {viewModel.sendFeedback("Slow Down Please")},
                 colors = ButtonDefaults.buttonColors(),
             ) {
                 Text("Slow Down Please")
             }
             Button(
-                onClick = {},
+                onClick = {viewModel.sendFeedback("I Am Confused")},
                 colors = ButtonDefaults.buttonColors(),
             ) {
                 Text("I Am Confused")
@@ -144,6 +161,7 @@ fun StudentContent(viewModel: PluggedViewModel) {
 
 @Composable
 fun InteractTopBar(
+    teacher: Boolean,
     classCode: String,
     count: Int = 0,
 ) {
@@ -170,7 +188,10 @@ fun InteractTopBar(
                 )
 
             }
-            PeopleCount(count)
+            if(teacher) {
+                PeopleCount(count)
+            }
+
         }
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp), // Adds padding on the sides

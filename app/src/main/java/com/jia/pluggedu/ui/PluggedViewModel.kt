@@ -21,7 +21,7 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import androidx.compose.runtime.remember
 enum class Status{
     CLIENT_CONNECT_SUCC,
     CLIENT_CONNECT_FAIL,
@@ -35,6 +35,7 @@ class PluggedViewModel : ViewModel() {
 
     // State
     val questionsList = mutableStateListOf<LogMessage>()
+    val feedbackList = mutableStateListOf<LogMessage>()
     val poll = mutableStateOf<LogMessage?>(null)
     val connectionMode = mutableStateOf("")
     val serverIp = mutableStateOf("")
@@ -44,6 +45,8 @@ class PluggedViewModel : ViewModel() {
     val connectionStatus = mutableStateOf<Status?>(null)
     val connectedIp = mutableStateOf("")
     val serverSize = mutableIntStateOf(0)
+    var isFeedbackVisible = mutableStateOf(false)
+
 
 
     // WebSocket components
@@ -77,6 +80,24 @@ class PluggedViewModel : ViewModel() {
         }
         messageToSend.value = ""
     }
+    fun sendFeedback(message: String) {
+        if (message.isBlank()) return
+
+        val structured = WebSocketMessage.createFeedbackMessage(message)
+
+        when {
+            server != null -> {
+                server?.broadcast(structured)
+                // Add our own message to the log
+                processMessage(structured, "You (broadcast)")
+            }
+            client != null -> {
+                client?.send(structured)
+                // Add our own message to the log
+                processMessage(structured, "You")
+            }
+        }
+    }
 
     fun startServer(portNumber: String, ipAddress: String, postSnackBar: (String)->Unit) {
         try {
@@ -103,7 +124,7 @@ class PluggedViewModel : ViewModel() {
                 server = MyWebSocketServer(InetSocketAddress("0.0.0.0", port))
                 server?.start()
                 Log.d(TAG, "Server started on port: $port")
-                postSnackBar("Server Started!")
+
                 addQuestions(LogMessage("Server started on port: $port", LogMessage.TYPE_SYSTEM))
             } catch (e: Exception) {
                 Log.e(TAG, "Error starting server: ${e.message}")
@@ -237,7 +258,7 @@ class PluggedViewModel : ViewModel() {
 
                 when (message.type) {
                     WebSocketMessage.TYPE_QUESTION -> {
-                        addQuestions(LogMessage("${message.content}", LogMessage.TYPE_QUESTION))
+                        addQuestions(LogMessage(message.content, LogMessage.TYPE_QUESTION))
                     }
                     WebSocketMessage.TYPE_STATUS -> {
                         if(message.content == "CONNECTED"){
@@ -247,15 +268,15 @@ class PluggedViewModel : ViewModel() {
                         }
                     }
                     WebSocketMessage.TYPE_SYSTEM -> {
-                        addQuestions(LogMessage("[$formattedTime] System message: ${message.content}", LogMessage.TYPE_SYSTEM))
+//                        addQuestions(LogMessage("[$formattedTime] System message: ${message.content}", LogMessage.TYPE_SYSTEM))
                     }
                     WebSocketMessage.TYPE_COMMAND -> {
-                        addQuestions(LogMessage("[$formattedTime] Command from $sender: ${message.content}", LogMessage.TYPE_COMMAND))
+//                        addQuestions(LogMessage("[$formattedTime] Command from $sender: ${message.content}", LogMessage.TYPE_COMMAND))
                         // Handle commands - could add special command handling here
                     }
-//                    WebSocketMessage.Type_FEEDBACK -> {
-//
-//                    }
+                    WebSocketMessage.TYPE_FEEDBACK -> {
+                        addFeedback(LogMessage(message.content, LogMessage.TYPE_FEEDBACK))
+                    }
                 }
             } else {
                 // Handle legacy unstructured messages
@@ -273,6 +294,12 @@ class PluggedViewModel : ViewModel() {
         }
     }
 
+    fun addFeedback(message: LogMessage) {
+        viewModelScope.launch(Dispatchers.Main) {
+            feedbackList.add(message)
+        }
+    }
+
     fun removeQuestion(index: Int) {
         viewModelScope.launch(Dispatchers.Main) {
             questionsList.removeAt(index)
@@ -287,13 +314,7 @@ class PluggedViewModel : ViewModel() {
             // Track the client
             connectedClients.add(conn)
 
-            // Send a welcome message to the client
-            val welcomeMessage = WebSocketMessage.createSystemMessage("Welcome to the server!")
-            conn.send(welcomeMessage)
 
-            // Notify everyone about the new connection
-            val connectMessage = WebSocketMessage.createStatusMessage("Client connected from $address")
-            broadcast(connectMessage)
 
             // Log locally
             addQuestions(LogMessage("New connection from: $address", LogMessage.TYPE_STATUS))
@@ -344,7 +365,7 @@ class PluggedViewModel : ViewModel() {
         override fun onStart() {
             Log.d(TAG, "Server started")
             isConnected.value = true
-//            connectionStatus.value = Status.SERVER_START_SUCC
+            connectionStatus.value = Status.SERVER_START_SUCC
         }
     }
 
@@ -399,6 +420,7 @@ class PluggedViewModel : ViewModel() {
             const val TYPE_SYSTEM = 2
             const val TYPE_ERROR = 3
             const val TYPE_COMMAND = 4
+            const val TYPE_FEEDBACK = 5
         }
     }
 

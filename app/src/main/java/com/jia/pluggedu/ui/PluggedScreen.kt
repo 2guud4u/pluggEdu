@@ -28,7 +28,31 @@ import kotlinx.serialization.Serializable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Send
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.Box
 
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 sealed class Routes {
     @Serializable
     data object Start
@@ -46,6 +70,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
     // Collect state from ViewModel
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
     val mode by remember { viewModel.connectionMode }
     val serverIp by remember { viewModel.serverIp }
     val port by remember { viewModel.port }
@@ -53,6 +78,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
     val logMessages = viewModel.questionsList
     val navController = rememberNavController()
     val connectionStatus by remember {viewModel.connectionStatus}
+
     fun postSnackBar(msg: String) {
         scope.launch {
             snackbarHostState.showSnackbar(msg)
@@ -83,6 +109,12 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
         }
         viewModel.connectionStatus.value = null
     }
+    LaunchedEffect(viewModel.feedbackList.size) {
+        viewModel.isFeedbackVisible.value = true
+        delay(5000) // 5 seconds
+        viewModel.isFeedbackVisible.value = false
+
+    }
 
     MaterialTheme {
         Surface(
@@ -90,7 +122,10 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
         ) {
 
             Scaffold(snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
+                SnackbarHost(
+                    hostState = snackbarHostState,
+
+                )
             }, topBar = {
                 PluggedTopBar()
             }, bottomBar = {
@@ -110,6 +145,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
                         .fillMaxWidth()
                         .padding(innerPadding), contentAlignment = Alignment.Center
                 ) {
+
                     NavHost(
                         navController = navController, startDestination = Routes.Start
                     ) {
@@ -141,6 +177,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
                                         viewModel.startServer(port,
                                             ipAddress,
                                             postSnackBar = { msg -> postSnackBar(msg) })
+
 
                                     },
                                     onConnectToServer = {
