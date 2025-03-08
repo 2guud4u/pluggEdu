@@ -22,12 +22,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-//enum class Status{
-//    CLIENT_CONNECT_SUCC,
-//    CLIENT_CONNECT_FAIL,
-//    SERVER_START_FAIL,
-//    SERVER_START_SUCC
-//}
+enum class Status{
+    CLIENT_CONNECT_SUCC,
+    CLIENT_CONNECT_FAIL,
+    SERVER_START_FAIL,
+    SERVER_START_SUCC
+}
 class PluggedViewModel : ViewModel() {
     private val TAG = "WebSocketApp"
     private val DEFAULT_PORT = 45678
@@ -41,7 +41,7 @@ class PluggedViewModel : ViewModel() {
     val port = mutableStateOf(DEFAULT_PORT.toString())
     val messageToSend = mutableStateOf("")
     val isConnected = mutableStateOf(false)
-    //    val connectionStatus = mutableStateOf<Status?>(null)
+    val connectionStatus = mutableStateOf<Status?>(null)
     val connectedIp = mutableStateOf("")
     val serverSize = mutableIntStateOf(0)
 
@@ -337,7 +337,7 @@ class PluggedViewModel : ViewModel() {
             Log.e(TAG, "Error occurred with $address: ${ex.message}")
             ex.printStackTrace()
             addQuestions(LogMessage("Error with $address: ${ex.message}", LogMessage.TYPE_ERROR))
-//            connectionStatus.value = Status.SERVER_START_FAIL
+            connectionStatus.value = Status.SERVER_START_FAIL
 
         }
 
@@ -355,7 +355,7 @@ class PluggedViewModel : ViewModel() {
             // Send a connection notification
             val connectMessage = WebSocketMessage.createStatusMessage(WebSocketMessage.STATUS_CONNECTED)
             send(connectMessage)
-//            connectionStatus.value = Status.CLIENT_CONNECT_SUCC
+            connectionStatus.value = Status.CLIENT_CONNECT_SUCC
 
         }
 
@@ -382,7 +382,7 @@ class PluggedViewModel : ViewModel() {
             ex.printStackTrace()
             addQuestions(LogMessage("Error: ${ex.message}", LogMessage.TYPE_ERROR))
             isConnected.value = false
-//            connectionStatus.value = Status.CLIENT_CONNECT_FAIL
+            connectionStatus.value = Status.CLIENT_CONNECT_FAIL
 
         }
     }

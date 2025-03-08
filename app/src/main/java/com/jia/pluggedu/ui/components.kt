@@ -185,15 +185,6 @@ fun NotifCard(
 
 
         ) {
-            // Image
-//            AsyncImage(
-//                model = imageUrl,
-//                contentDescription = title,
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .size(80.dp)
-//                    .clip(RoundedCornerShape(8.dp))
-//            )
 
             Spacer(modifier = Modifier.width(16.dp))
 

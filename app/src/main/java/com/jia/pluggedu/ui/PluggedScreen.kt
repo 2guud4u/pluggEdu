@@ -52,29 +52,37 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
     val isConnected by remember { viewModel.isConnected }
     val logMessages = viewModel.questionsList
     val navController = rememberNavController()
-    //    val connectionStatus by remember {viewModel.connectionStatus}
+    val connectionStatus by remember {viewModel.connectionStatus}
     fun postSnackBar(msg: String) {
         scope.launch {
             snackbarHostState.showSnackbar(msg)
         }
     }
-//    LaunchedEffect(connectionStatus) {
-//        when (connectionStatus) {
-//            Status.CLIENT_CONNECT_SUCC -> {
-//                postSnackBar("Connection Success!")
-//            }
-//            Status.CLIENT_CONNECT_FAIL -> {
-//                postSnackBar("Connection Failure")
-//            }
-//            Status.SERVER_START_FAIL -> {
-//                postSnackBar("Server Start Failed")
-//            }
-//            Status.SERVER_START_SUCC -> {
-//                postSnackBar("Server Started!")
-//            }
-//            null -> TODO()
-//        }
-//    }
+    LaunchedEffect(connectionStatus) {
+        when (connectionStatus) {
+            Status.CLIENT_CONNECT_SUCC -> {
+                postSnackBar("Connection Success!")
+                navController.navigate(
+                    Routes.Interact
+                )
+            }
+            Status.CLIENT_CONNECT_FAIL -> {
+                postSnackBar("Connection Failure")
+
+            }
+            Status.SERVER_START_FAIL -> {
+                postSnackBar("Server Start Failed")
+            }
+            Status.SERVER_START_SUCC -> {
+                postSnackBar("Server Started!")
+                navController.navigate(
+                    Routes.Interact
+                )
+            }
+            null -> {}
+        }
+        viewModel.connectionStatus.value = null
+    }
 
     MaterialTheme {
         Surface(
@@ -105,6 +113,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
                     NavHost(
                         navController = navController, startDestination = Routes.Start
                     ) {
+
                         composable<Routes.Start> {
 
                             ModeSelectionScreen(viewModel, onSelect = { mode ->
@@ -132,17 +141,13 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
                                         viewModel.startServer(port,
                                             ipAddress,
                                             postSnackBar = { msg -> postSnackBar(msg) })
-                                        navController.navigate(
-                                            Routes.Interact
-                                        )
+
                                     },
                                     onConnectToServer = {
                                         viewModel.connectToServer(serverIp,
                                             port,
                                             postSnackBar = { msg -> postSnackBar(msg) })
-                                        navController.navigate(
-                                            Routes.Interact
-                                        )
+
                                     },
                                     onBack = {
                                         navController.navigate(
@@ -156,7 +161,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
 
                         }
                         composable<Routes.Interact> { backstackEntry ->
-                            if (viewModel.isConnected.value) {
+
                                 InteractionScreen(
                                     viewModel,
                                     ipAddress = ipAddress,
@@ -167,19 +172,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
                                         )
                                         viewModel.connectionMode.value = ("")
                                     })
-                            } else {
-                                Column {
-                                    Text("Connection Failed")
-                                    Button(onClick = {
-                                        navController.navigate(
-                                            Routes.Start
-                                        )
-                                    }) {
-                                        Text("Try Again")
-                                    }
-                                }
 
-                            }
 
 
                         }
