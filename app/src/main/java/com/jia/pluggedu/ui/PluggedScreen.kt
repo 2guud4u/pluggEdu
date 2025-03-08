@@ -94,10 +94,15 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
             }
             Status.CLIENT_CONNECT_FAIL -> {
                 postSnackBar("Connection Failure")
-
+                navController.navigate(
+                    Routes.Connect
+                )
             }
             Status.SERVER_START_FAIL -> {
                 postSnackBar("Server Start Failed")
+                navController.navigate(
+                    Routes.Connect
+                )
             }
             Status.SERVER_START_SUCC -> {
                 postSnackBar("Server Started!")
@@ -166,7 +171,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
                         }
 
                         composable<Routes.Connect> {
-                            if (mode.isNotEmpty() && !isConnected) {
+
                                 ConnectionSettingsScreen(mode = mode,
                                     ipAddress = ipAddress,
                                     serverIp = serverIp,
@@ -196,7 +201,7 @@ fun PluggedScreen(viewModel: PluggedViewModel, ipAddress: String) {
                                 )
                             }
 
-                        }
+
                         composable<Routes.Interact> { backstackEntry ->
 
                                 InteractionScreen(

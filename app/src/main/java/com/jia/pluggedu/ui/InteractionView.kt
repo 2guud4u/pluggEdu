@@ -79,6 +79,7 @@ fun InteractionScreen(
 fun TeacherContent(viewModel: PluggedViewModel) {
 
     Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         androidx.compose.animation.AnimatedVisibility(
             visible = viewModel.isFeedbackVisible.value,
@@ -99,25 +100,15 @@ fun TeacherContent(viewModel: PluggedViewModel) {
 
         }
 
-
-        HorizontalDivider(
-            thickness = 2.dp, // Thicker line
-            color = Color.Gray, // Custom color,
-            modifier = Modifier
-                .width(370.dp)
-                .padding(vertical = 16.dp)
-        )
-
-
-        Card(
-        ) {
             LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+
             ) {
-                itemsIndexed(viewModel.questionsList) { index, message ->
+                itemsIndexed(viewModel.questionsList.reversed()) { index, message ->
                     MessageItem(message, { viewModel.removeQuestion(index) })
                 }
             }
-        }
+
 
     }
 
@@ -127,7 +118,7 @@ fun TeacherContent(viewModel: PluggedViewModel) {
 @Composable
 fun StudentContent(viewModel: PluggedViewModel) {
     val messageToSend by remember { viewModel.messageToSend }
-    Column() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row() {
             Button(
                 onClick = {viewModel.sendFeedback("Slow Down Please")},

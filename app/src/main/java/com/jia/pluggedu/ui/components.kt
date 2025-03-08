@@ -173,7 +173,7 @@ fun NotifCard(
     onDeleteClick: () -> Unit = {},
 
     isElevated: Boolean = true,
-    modifier: Modifier = Modifier.padding(horizontal = 16.dp)
+
 ) {
     val cardComposable: @Composable () -> Unit = {
 
@@ -186,7 +186,7 @@ fun NotifCard(
 
         ) {
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp).padding(horizontal = 16.dp))
 
             // Content
             Column(
